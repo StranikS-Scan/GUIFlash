@@ -283,8 +283,9 @@ class Flash_UI(Flash_Meta):
         LOG_NOTE('GUIFlash :', *args)
 
     def py_update(self, alias, props):
-        g_guiCache.update(alias, props.toDict())
-        COMPONENT_EVENT.UPDATED(alias, props.toDict())
+        if g_guiCache.isComponent(alias):
+            g_guiCache.update(alias, props.toDict())
+            COMPONENT_EVENT.UPDATED(alias, props.toDict())
 
 
 class GUIFlash(object):
