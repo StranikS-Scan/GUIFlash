@@ -33,7 +33,7 @@ class COMPONENT_ALIGN(object):
     LEFT = 'left'
     RIGHT = 'right'
     CENTER = 'center'
-    TOP = "top"
+    TOP = 'top'
     BOTTOM = 'bottom'
 
 
@@ -86,7 +86,7 @@ class Cache(object):
     # ..
     def readConfig(self, file):
         LOG_DEBUG('GUIFlash :', 'Read config from file "%s".' % file)
-        with open(file, "r") as file:
+        with open(file, 'r') as file:
             data = json.load(file)
         return data
 
