@@ -130,6 +130,10 @@ class Views(object):
         if self.ui is not None:
             self.ui.as_fullStatsS(isShow)
 
+    def fullStatsQuestProgress(self, isShow):
+        if self.ui is not None:
+            self.ui.as_fullStatsQuestProgressS(isShow)
+
     def radialMenu(self, isShow):
         if self.ui is not None:
             self.ui.as_radialMenuS(isShow)
@@ -150,13 +154,14 @@ class Hooks(object):
         g_eventBus.addListener(events.GameEvent.HIDE_CURSOR, self.__handleHideCursor, EVENT_BUS_SCOPE.GLOBAL)
         g_eventBus.addListener(events.GameEvent.RADIAL_MENU_CMD, self.__toggleRadialMenu, scope=EVENT_BUS_SCOPE.BATTLE)
         g_eventBus.addListener(events.GameEvent.FULL_STATS, self.__toggleFullStats, scope=EVENT_BUS_SCOPE.BATTLE)
+        g_eventBus.addListener(events.GameEvent.FULL_STATS_QUEST_PROGRESS, self.__toggleFullStatsQuestProgress, scope=EVENT_BUS_SCOPE.BATTLE)
 
     def _dispose(self):
         g_eventBus.removeListener(events.GameEvent.SHOW_CURSOR, self.__handleShowCursor, EVENT_BUS_SCOPE.GLOBAL)
         g_eventBus.removeListener(events.GameEvent.HIDE_CURSOR, self.__handleHideCursor, EVENT_BUS_SCOPE.GLOBAL)
-        g_eventBus.removeListener(events.GameEvent.RADIAL_MENU_CMD, self.__toggleRadialMenu,
-                                  scope=EVENT_BUS_SCOPE.BATTLE)
+        g_eventBus.removeListener(events.GameEvent.RADIAL_MENU_CMD, self.__toggleRadialMenu, scope=EVENT_BUS_SCOPE.BATTLE)
         g_eventBus.removeListener(events.GameEvent.FULL_STATS, self.__toggleFullStats, scope=EVENT_BUS_SCOPE.BATTLE)
+        g_eventBus.removeListener(events.GameEvent.FULL_STATS_QUEST_PROGRESS, self.__toggleFullStatsQuestProgress, scope=EVENT_BUS_SCOPE.BATTLE)
 
     def __onGUISpaceEntered(self, spaceID):
         if spaceID == SPACE_ID.LOGIN:
@@ -185,6 +190,10 @@ class Hooks(object):
     def __toggleFullStats(self, event):
         isDown = event.ctx['isDown']
         g_guiEvents.toggleFullStats(isDown)
+
+    def __toggleFullStatsQuestProgress(self, event):
+        isDown = event.ctx['isDown']
+        g_guiEvents.toggleFullStatsQuestProgress(isDown)
 
     def __toggleRadialMenu(self, event):
         if BattleReplay.isPlaying():
@@ -219,6 +228,9 @@ class Events(object):
     def toggleFullStats(self, isShow):
         g_guiViews.fullStats(isShow)
 
+    def toggleFullStatsQuestProgress(self, isShow):
+        g_guiViews.fullStatsQuestProgress(isShow)
+
     def toggleRadialMenu(self, isShow):
         g_guiViews.radialMenu(isShow)
 
@@ -226,8 +238,7 @@ class Events(object):
 class Settings(object):
 
     def _start(self):
-        g_entitiesFactories.addSettings(
-            ViewSettings(CONSTANTS.VIEW_ALIAS, Flash_UI, CONSTANTS.FILE_NAME, ViewTypes.WINDOW, None, ScopeTemplates.GLOBAL_SCOPE))
+        g_entitiesFactories.addSettings(ViewSettings(CONSTANTS.VIEW_ALIAS, Flash_UI, CONSTANTS.FILE_NAME, ViewTypes.WINDOW, None, ScopeTemplates.GLOBAL_SCOPE))
 
     def _destroy(self):
         g_entitiesFactories.removeSettings(CONSTANTS.VIEW_ALIAS)
@@ -260,6 +271,10 @@ class Flash_Meta(View):
     def as_fullStatsS(self, isShow):
         if self._isDAAPIInited():
             return self.flashObject.as_fullStats(isShow)
+
+    def as_fullStatsQuestProgressS(self, isShow):
+        if self._isDAAPIInited():
+            return self.flashObject.as_fullStatsQuestProgress(isShow)
 
     def as_radialMenuS(self, isShow):
         if self._isDAAPIInited():
