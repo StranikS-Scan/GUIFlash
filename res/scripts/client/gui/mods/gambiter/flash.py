@@ -2,15 +2,17 @@
 
 __all__ = ['COMPONENT_TYPE', 'COMPONENT_ALIGN', 'COMPONENT_EVENT']
 
+import GUI
 import Event
 import BattleReplay
 import json, codecs
-from gui.app_loader import g_appLoader
-from gui.app_loader.settings import GUI_GLOBAL_SPACE_ID as SPACE_ID
+from gui import g_guiResetters
 from gui.shared import g_eventBus, events, EVENT_BUS_SCOPE
+from gui.shared.personality import ServicesLocator
 from gui.Scaleform.framework.entities.View import View
 from gui.Scaleform.framework.managers.loaders import SFViewLoadParams
 from gui.Scaleform.framework import g_entitiesFactories, ViewSettings, ViewTypes, ScopeTemplates
+from skeletons.gui.app_loader import GuiGlobalSpaceID as SPACE_ID
 from utils import LOG_NOTE, LOG_DEBUG, LOG_ERROR
 
 
@@ -117,14 +119,28 @@ class Views(object):
             self.ui.as_updateS(alias, props)
             LOG_DEBUG('GUIFlash :', 'Component "%s" updated. Parameters: %s' % (alias, props))
 
+    def animate(self, alias, delay, props, isFrom=False):
+        if self.ui is not None:
+            self.ui.as_animateS(alias, delay, props, isFrom)
+            LOG_DEBUG('GUIFlash :', 'Component "%s" animated. Parameters: %s' % (alias, props))
+
     def delete(self, alias):
         if self.ui is not None:
             self.ui.as_deleteS(alias)
             LOG_DEBUG('GUIFlash :', 'Component "%s" deleted.' % alias)
 
+    def resize(self):
+        if self.ui is not None:
+            width, height = GUI.screenResolution()
+            self.ui.as_resizeS(width, height)
+
     def cursor(self, isShow):
         if self.ui is not None:
             self.ui.as_cursorS(isShow)
+
+    def radialMenu(self, isShow):
+        if self.ui is not None:
+            self.ui.as_radialMenuS(isShow)
 
     def fullStats(self, isShow):
         if self.ui is not None:
@@ -134,20 +150,16 @@ class Views(object):
         if self.ui is not None:
             self.ui.as_fullStatsQuestProgressS(isShow)
 
-    def radialMenu(self, isShow):
-        if self.ui is not None:
-            self.ui.as_radialMenuS(isShow)
-
 
 class Hooks(object):
 
     def _start(self):
-        g_appLoader.onGUISpaceEntered += self.__onGUISpaceEntered
-        g_appLoader.onGUISpaceLeft += self.__onGUISpaceLeft
+        ServicesLocator.appLoader.onGUISpaceEntered += self.__onGUISpaceEntered
+        ServicesLocator.appLoader.onGUISpaceLeft += self.__onGUISpaceLeft
 
     def _destroy(self):
-        g_appLoader.onGUISpaceEntered -= self.__onGUISpaceEntered
-        g_appLoader.onGUISpaceLeft -= self.__onGUISpaceLeft
+        ServicesLocator.appLoader.onGUISpaceEntered -= self.__onGUISpaceEntered
+        ServicesLocator.appLoader.onGUISpaceLeft -= self.__onGUISpaceLeft
 
     def _populate(self):
         g_eventBus.addListener(events.GameEvent.SHOW_CURSOR, self.__handleShowCursor, EVENT_BUS_SCOPE.GLOBAL)
@@ -155,6 +167,7 @@ class Hooks(object):
         g_eventBus.addListener(events.GameEvent.RADIAL_MENU_CMD, self.__toggleRadialMenu, scope=EVENT_BUS_SCOPE.BATTLE)
         g_eventBus.addListener(events.GameEvent.FULL_STATS, self.__toggleFullStats, scope=EVENT_BUS_SCOPE.BATTLE)
         g_eventBus.addListener(events.GameEvent.FULL_STATS_QUEST_PROGRESS, self.__toggleFullStatsQuestProgress, scope=EVENT_BUS_SCOPE.BATTLE)
+        g_guiResetters.add(self.__onResizeStage)
 
     def _dispose(self):
         g_eventBus.removeListener(events.GameEvent.SHOW_CURSOR, self.__handleShowCursor, EVENT_BUS_SCOPE.GLOBAL)
@@ -162,6 +175,7 @@ class Hooks(object):
         g_eventBus.removeListener(events.GameEvent.RADIAL_MENU_CMD, self.__toggleRadialMenu, scope=EVENT_BUS_SCOPE.BATTLE)
         g_eventBus.removeListener(events.GameEvent.FULL_STATS, self.__toggleFullStats, scope=EVENT_BUS_SCOPE.BATTLE)
         g_eventBus.removeListener(events.GameEvent.FULL_STATS_QUEST_PROGRESS, self.__toggleFullStatsQuestProgress, scope=EVENT_BUS_SCOPE.BATTLE)
+        g_guiResetters.discard(self.__onResizeStage)
 
     def __onGUISpaceEntered(self, spaceID):
         if spaceID == SPACE_ID.LOGIN:
@@ -179,6 +193,9 @@ class Hooks(object):
         elif spaceID == SPACE_ID.BATTLE:
             g_guiEvents.leaveBattle()
 
+    def __onResizeStage(self):
+        g_guiEvents.resizeStage()
+
     def __handleShowCursor(self, _):
         isShow = True
         g_guiEvents.toggleCursor(isShow)
@@ -187,6 +204,12 @@ class Hooks(object):
         isShow = False
         g_guiEvents.toggleCursor(isShow)
 
+    def __toggleRadialMenu(self, event):
+        if BattleReplay.isPlaying():
+            return
+        isDown = event.ctx['isDown']
+        g_guiEvents.toggleRadialMenu(isDown)
+
     def __toggleFullStats(self, event):
         isDown = event.ctx['isDown']
         g_guiEvents.toggleFullStats(isDown)
@@ -194,12 +217,6 @@ class Hooks(object):
     def __toggleFullStatsQuestProgress(self, event):
         isDown = event.ctx['isDown']
         g_guiEvents.toggleFullStatsQuestProgress(isDown)
-
-    def __toggleRadialMenu(self, event):
-        if BattleReplay.isPlaying():
-            return
-        isDown = event.ctx['isDown']
-        g_guiEvents.toggleRadialMenu(isDown)
 
 
 class Events(object):
@@ -214,7 +231,7 @@ class Events(object):
         pass
 
     def goToBattle(self):
-        g_appLoader.getApp().loadView(SFViewLoadParams(CONSTANTS.VIEW_ALIAS))
+        ServicesLocator.appLoader.getApp().loadView(SFViewLoadParams(CONSTANTS.VIEW_ALIAS))
 
     def leaveLobby(self):
         pass
@@ -222,17 +239,20 @@ class Events(object):
     def leaveBattle(self):
         pass
 
+    def resizeStage(self):
+        g_guiViews.resize()
+
     def toggleCursor(self, isShow):
         g_guiViews.cursor(isShow)
+
+    def toggleRadialMenu(self, isShow):
+        g_guiViews.radialMenu(isShow)
 
     def toggleFullStats(self, isShow):
         g_guiViews.fullStats(isShow)
 
     def toggleFullStatsQuestProgress(self, isShow):
         g_guiViews.fullStatsQuestProgress(isShow)
-
-    def toggleRadialMenu(self, isShow):
-        g_guiViews.radialMenu(isShow)
 
 
 class Settings(object):
@@ -260,13 +280,25 @@ class Flash_Meta(View):
         if self._isDAAPIInited():
             return self.flashObject.as_update(alias, props)
 
+    def as_animateS(self, alias, delay, props, isFrom=False):
+        if self._isDAAPIInited():
+            return self.flashObject.as_animate(alias, delay, props, isFrom)
+
     def as_deleteS(self, alias):
         if self._isDAAPIInited():
             return self.flashObject.as_delete(alias)
 
+    def as_resizeS(self, width, height):
+        if self._isDAAPIInited():
+            return self.flashObject.as_resize(width, height)
+
     def as_cursorS(self, isShow):
         if self._isDAAPIInited():
             return self.flashObject.as_cursor(isShow)
+
+    def as_radialMenuS(self, isShow):
+        if self._isDAAPIInited():
+            return self.flashObject.as_radialMenu(isShow)
 
     def as_fullStatsS(self, isShow):
         if self._isDAAPIInited():
@@ -276,10 +308,6 @@ class Flash_Meta(View):
         if self._isDAAPIInited():
             return self.flashObject.as_fullStatsQuestProgress(isShow)
 
-    def as_radialMenuS(self, isShow):
-        if self._isDAAPIInited():
-            return self.flashObject.as_radialMenu(isShow)
-
 
 class Flash_UI(Flash_Meta):
 
@@ -287,6 +315,7 @@ class Flash_UI(Flash_Meta):
         super(Flash_UI, self)._populate()
         g_guiHooks._populate()
         g_guiViews.ui = self
+        g_guiViews.resize()
         g_guiViews.createAll()
 
     def _dispose(self):
@@ -328,6 +357,13 @@ class GUIFlash(object):
         if g_guiCache.isComponent(alias):
             g_guiCache.update(alias, props)
             g_guiViews.update(alias, props)
+        else:
+            LOG_ERROR('GUIFlash :', 'Component "%s" not found!' % alias)
+
+    def animateComponent(self, alias, delay, props, isFrom=False):
+        if g_guiCache.isComponent(alias):
+            g_guiCache.update(alias, props)
+            g_guiViews.animate(alias, delay, props, isFrom)
         else:
             LOG_ERROR('GUIFlash :', 'Component "%s" not found!' % alias)
 
