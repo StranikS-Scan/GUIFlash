@@ -6,6 +6,7 @@ import GUI
 import Event
 import BattleReplay
 import json, codecs
+from helpers import dependency
 from gui import g_guiResetters
 from gui.shared import g_eventBus, events, EVENT_BUS_SCOPE
 from gui.shared.personality import ServicesLocator
@@ -13,6 +14,7 @@ from gui.Scaleform.framework.entities.View import View
 from gui.Scaleform.framework.managers.loaders import SFViewLoadParams
 from gui.Scaleform.framework import g_entitiesFactories, ViewSettings, ViewTypes, ScopeTemplates
 from skeletons.gui.app_loader import GuiGlobalSpaceID as SPACE_ID
+from skeletons.gui.battle_session import IBattleSessionProvider
 from utils import LOG_NOTE, LOG_DEBUG, LOG_ERROR
 
 class CONSTANTS(object):
@@ -145,8 +147,17 @@ class Views(object):
         if self.ui is not None:
             self.ui.as_fullStatsQuestProgressS(isShow)
 
+    def epicMapOverlayVisibility(self, isShow):
+        if self.ui is not None:
+            self.ui.as_epicMapOverlayVisibilityS(isShow)
+
+    def epicRespawnOverlayVisibility(self, isShow):
+        if self.ui is not None:
+            self.ui.as_epicRespawnOverlayVisibilityS(isShow)
+
 
 class Hooks(object):
+    sessionProvider = dependency.descriptor(IBattleSessionProvider)
 
     def _start(self):
         ServicesLocator.appLoader.onGUISpaceEntered += self.__onGUISpaceEntered
@@ -163,6 +174,12 @@ class Hooks(object):
         g_eventBus.addListener(events.GameEvent.FULL_STATS, self.__toggleFullStats, scope=EVENT_BUS_SCOPE.BATTLE)
         g_eventBus.addListener(events.GameEvent.FULL_STATS_QUEST_PROGRESS, self.__toggleFullStatsQuestProgress, scope=EVENT_BUS_SCOPE.BATTLE)
         g_guiResetters.add(self.__onResizeStage)
+        ctrl = self.sessionProvider.dynamic.maps
+        if ctrl is not None:
+            ctrl.onVisibilityChanged += self.__onMapVisibilityChanged
+        ctrl = self.sessionProvider.dynamic.respawn
+        if ctrl is not None:
+            ctrl.onRespawnVisibilityChanged += self.__onRespawnVisibilityChanged
 
     def _dispose(self):
         g_eventBus.removeListener(events.GameEvent.SHOW_CURSOR, self.__handleShowCursor, EVENT_BUS_SCOPE.GLOBAL)
@@ -171,6 +188,12 @@ class Hooks(object):
         g_eventBus.removeListener(events.GameEvent.FULL_STATS, self.__toggleFullStats, scope=EVENT_BUS_SCOPE.BATTLE)
         g_eventBus.removeListener(events.GameEvent.FULL_STATS_QUEST_PROGRESS, self.__toggleFullStatsQuestProgress, scope=EVENT_BUS_SCOPE.BATTLE)
         g_guiResetters.discard(self.__onResizeStage)
+        ctrl = self.sessionProvider.dynamic.maps
+        if ctrl is not None:
+            ctrl.onVisibilityChanged -= self.__onMapVisibilityChanged
+        ctrl = self.sessionProvider.dynamic.respawn
+        if ctrl is not None:
+            ctrl.onRespawnVisibilityChanged -= self.__onRespawnVisibilityChanged
 
     def __onGUISpaceEntered(self, spaceID):
         if spaceID == SPACE_ID.LOGIN:
@@ -213,6 +236,12 @@ class Hooks(object):
         isDown = event.ctx['isDown']
         g_guiEvents.toggleFullStatsQuestProgress(isDown)
 
+    def __onMapVisibilityChanged(self, isVisible):
+        g_guiEvents.epicMapOverlayVisibility(isVisible)
+
+    def __onRespawnVisibilityChanged(self, isRespawnScreenVisible):
+        g_guiEvents.epicRespawnOverlayVisibility(isRespawnScreenVisible)
+
 
 class Events(object):
 
@@ -248,6 +277,12 @@ class Events(object):
 
     def toggleFullStatsQuestProgress(self, isShow):
         g_guiViews.fullStatsQuestProgress(isShow)
+
+    def epicMapOverlayVisibility(self, isShow):
+        g_guiViews.epicMapOverlayVisibility(isShow)
+
+    def epicRespawnOverlayVisibility(self, isShow):
+        g_guiViews.epicRespawnOverlayVisibility(isShow)
 
 
 class Settings(object):
@@ -298,6 +333,14 @@ class Flash_Meta(View):
     def as_fullStatsQuestProgressS(self, isShow):
         if self._isDAAPIInited():
             return self.flashObject.as_fullStatsQuestProgress(isShow)
+
+    def as_epicMapOverlayVisibilityS(self, isShow):
+        if self._isDAAPIInited():
+            return self.flashObject.as_epicMapOverlayVisibility(isShow)
+
+    def as_epicRespawnOverlayVisibilityS(self, isShow):
+        if self._isDAAPIInited():
+            return self.flashObject.as_epicRespawnOverlayVisibility(isShow)
 
 
 class Flash_UI(Flash_Meta):
