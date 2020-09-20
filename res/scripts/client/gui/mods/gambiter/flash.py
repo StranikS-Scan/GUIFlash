@@ -175,7 +175,7 @@ class Hooks(object):
         g_eventBus.addListener(events.GameEvent.FULL_STATS_QUEST_PROGRESS, self.__toggleFullStatsQuestProgress, scope=EVENT_BUS_SCOPE.BATTLE)
         g_guiResetters.add(self.__onResizeStage)
         ctrl = self.sessionProvider.dynamic.maps
-        if ctrl is not None:
+        if ctrl and hasattr(ctrl, 'onVisibilityChanged'):
             ctrl.onVisibilityChanged += self.__onMapVisibilityChanged
         ctrl = self.sessionProvider.dynamic.respawn
         if ctrl is not None:
@@ -189,7 +189,7 @@ class Hooks(object):
         g_eventBus.removeListener(events.GameEvent.FULL_STATS_QUEST_PROGRESS, self.__toggleFullStatsQuestProgress, scope=EVENT_BUS_SCOPE.BATTLE)
         g_guiResetters.discard(self.__onResizeStage)
         ctrl = self.sessionProvider.dynamic.maps
-        if ctrl is not None:
+        if ctrl and hasattr(ctrl, 'onVisibilityChanged'):
             ctrl.onVisibilityChanged -= self.__onMapVisibilityChanged
         ctrl = self.sessionProvider.dynamic.respawn
         if ctrl is not None:
