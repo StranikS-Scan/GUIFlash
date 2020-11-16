@@ -181,23 +181,25 @@ class Hooks(object):
         g_eventBus.addListener(events.GameEvent.FULL_STATS_QUEST_PROGRESS, self.__toggleFullStatsQuestProgress, scope=EVENT_BUS_SCOPE.BATTLE)
         g_guiResetters.add(self.__onResizeStage)
         ctrl = self.sessionProvider.dynamic.maps
-        if ctrl and hasattr(ctrl, 'onVisibilityChanged'):
+        if ctrl is not None and hasattr(ctrl, 'onVisibilityChanged'):
             ctrl.onVisibilityChanged += self.__onMapVisibilityChanged
         ctrl = self.sessionProvider.dynamic.respawn
-        if ctrl is not None:
+        if ctrl is not None and hasattr(ctrl, 'onRespawnVisibilityChanged'):
             ctrl.onRespawnVisibilityChanged += self.__onRespawnVisibilityChanged
 
         spawnCtrl = self.sessionProvider.dynamic.spawn
         if spawnCtrl is not None:
             if hasattr(BattleRoyalePage, 'showSpawnPoints'):
                 global hooked_showSpawnPoints
-                hooked_showSpawnPoints = BattleRoyalePage.showSpawnPoints
-                BattleRoyalePage.showSpawnPoints = newBattleRoyalePageShowSpawnPoints
+                if hooked_showSpawnPoints is None:
+                    hooked_showSpawnPoints = BattleRoyalePage.showSpawnPoints
+                    BattleRoyalePage.showSpawnPoints = newBattleRoyalePageShowSpawnPoints
 
             if hasattr(BattleRoyalePage, 'closeSpawnPoints'):
                 global hooked_closeSpawnPoints
-                hooked_closeSpawnPoints = BattleRoyalePage.closeSpawnPoints
-                BattleRoyalePage.closeSpawnPoints = newBattleRoyalePageCloseSpawnPoints
+                if hooked_closeSpawnPoints is None:
+                    hooked_closeSpawnPoints = BattleRoyalePage.closeSpawnPoints
+                    BattleRoyalePage.closeSpawnPoints = newBattleRoyalePageCloseSpawnPoints
 
     def _dispose(self):
         g_eventBus.removeListener(events.GameEvent.SHOW_CURSOR, self.__handleShowCursor, EVENT_BUS_SCOPE.GLOBAL)
@@ -213,15 +215,6 @@ class Hooks(object):
         if ctrl is not None:
             ctrl.onRespawnVisibilityChanged -= self.__onRespawnVisibilityChanged
 
-        spawnCtrl = self.sessionProvider.dynamic.spawn
-        global hooked_showSpawnPoints, hooked_closeSpawnPoints
-        if spawnCtrl is not None and hooked_showSpawnPoints is not None:
-            BattleRoyalePage.showSpawnPoints = hooked_showSpawnPoints
-            hooked_showSpawnPoints = None
-
-        if spawnCtrl is not None and hooked_closeSpawnPoints is not None:
-            BattleRoyalePage.closeSpawnPoints = hooked_closeSpawnPoints
-            hooked_closeSpawnPoints = None
     def __onGUISpaceEntered(self, spaceID):
         if spaceID == SPACE_ID.LOGIN:
             g_guiEvents.goToLogin()
@@ -444,9 +437,8 @@ g_guiEvents = Events()
 g_guiSettings = Settings()
 
 
-hooked_showSpawnPoints = BattleRoyalePage.showSpawnPoints
-hooked_closeSpawnPoints = BattleRoyalePage.closeSpawnPoints
-
+hooked_showSpawnPoints = \
+hooked_closeSpawnPoints = None
 
 def newBattleRoyalePageShowSpawnPoints(self):
     try:
