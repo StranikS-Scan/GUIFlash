@@ -95,7 +95,7 @@
 				FlashUI.ui.py_log("Object with linkage \'" + obj.name + "\' doesn`t contain property " + "with name \'" + prop + "\'.");
 			}
 
-			if (obj is UIComponentEx && !(obj is ImageEx)) {
+			if (obj is UIComponentEx /* && !(obj is ImageEx)*/ ) {
 				(obj as UIComponentEx).refresh();
 			}
 		}
@@ -125,10 +125,10 @@
 			if (obj is UIComponentEx) tweens.onUpdate = (obj as UIComponentEx).refresh;
 			
 			if (start) { tweens.onStart = setProperty; tweens.onStartParams = [obj, props]; }
-			else { tweens.onComplete = setProperty; tweens.onCompleteParams = [obj, props]; }				
+			else { tweens.onComplete = setProperty; tweens.onCompleteParams = [obj, props]; }
 
 			if (from) TweenLite.from(obj, duration, tweens);
-			else TweenLite.to(obj, duration, tweens);				
+			else TweenLite.to(obj, duration, tweens);
 		}
 
 		private static function isEmptyObject(obj:Object):Boolean

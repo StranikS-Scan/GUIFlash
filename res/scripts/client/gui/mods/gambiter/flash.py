@@ -73,13 +73,10 @@ class Cache(object):
     def isActiveComponent(self, alias):
         if alias not in self.components:
             return False
-        if hasattr(BigWorld.player(), 'arena'):
-            return self.components[alias]['battle']
-        return self.components[alias]['lobby']
+        return self.components[alias]['battle'] if hasattr(BigWorld.player(), 'arena') else self.components[alias]['lobby']
+
     def getComponent(self, alias=None):
-        if alias is None:
-            return self.components
-        return self.components.get(alias)
+        return self.components if alias is None else self.components.get(alias)
 
     def getKeys(self):
         return sorted(filter(self.isActiveComponent, self.components.keys()))
@@ -90,13 +87,11 @@ class Cache(object):
     def isTypeValid(self, compType):
         return compType in ALL_COMPONENT_TYPES
 
-    # ..
     def readConfig(self, path):
         with open(path, "r") as f:
             data = json.load(f)
         return data
 
-    # ..
     def saveConfig(self, path, data):
         with codecs.open(path, 'w', 'utf-8') as f:
             json.dump(data, f, indent=4, sort_keys=True, ensure_ascii=False)
@@ -255,11 +250,11 @@ class Hooks(object):
     def __onMapVisibilityChanged(self, isVisible):
         g_guiEvents.epicMapOverlayVisibility(isVisible)
 
-    def __onRespawnVisibilityChanged(self, isRespawnScreenVisible):
-        g_guiEvents.epicRespawnOverlayVisibility(isRespawnScreenVisible)
+    def __onRespawnVisibilityChanged(self, isVisible):
+        g_guiEvents.epicRespawnOverlayVisibility(isVisible)
 
-    def onBattleRoyaleSpawnVisibilityChanged(self, isSpawnScreenVisible):
-        g_guiEvents.battleRoyaleSpawnVisibility(isSpawnScreenVisible)
+    def onBattleRoyaleSpawnVisibilityChanged(self, isVisible):
+        g_guiEvents.battleRoyaleSpawnVisibility(isVisible)
 
 class Events(object):
 
@@ -276,10 +271,14 @@ class Events(object):
         ServicesLocator.appLoader.getApp().loadView(SFViewLoadParams(CONSTANTS.VIEW_ALIAS))
 
     def leaveLobby(self):
-        pass
+        if g_guiViews.ui is not None:
+            g_guiViews.ui.destroy()
+        return
 
     def leaveBattle(self):
-        pass
+        if g_guiViews.ui is not None:
+            g_guiViews.ui.destroy()
+        return
 
     def resizeStage(self):
         g_guiViews.resize()
@@ -417,8 +416,7 @@ g_guiEvents = Events()
 g_guiSettings = Settings()
 
 
-hooked_showSpawnPoints = \
-hooked_closeSpawnPoints = None
+hooked_showSpawnPoints = hooked_closeSpawnPoints = None
 
 def newBattleRoyalePageShowSpawnPoints(self):
     try:
