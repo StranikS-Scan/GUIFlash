@@ -13,14 +13,12 @@ from gui.shared.personality import ServicesLocator
 from gui.Scaleform.framework.entities.View import View
 from gui.Scaleform.framework.managers.loaders import SFViewLoadParams
 from gui.Scaleform.framework import g_entitiesFactories, ViewSettings, ScopeTemplates
-from gui.Scaleform.daapi.view.battle.battle_royale import BattleRoyalePage
 from skeletons.gui.app_loader import GuiGlobalSpaceID as SPACE_ID
 from skeletons.gui.battle_session import IBattleSessionProvider
 
 class CONSTANTS(object):
-    FILE_NAME = 'GUIFlash.swf'
+    FILE_NAME  = 'GUIFlash.swf'
     VIEW_ALIAS = 'GUIFlash'
-
 
 class COMPONENT_TYPE(object):
     PANEL = 'Panel'
@@ -28,30 +26,25 @@ class COMPONENT_TYPE(object):
     IMAGE = 'Image'
     SHAPE = 'Shape'
 
-
 ALL_COMPONENT_TYPES = (COMPONENT_TYPE.PANEL, COMPONENT_TYPE.LABEL, COMPONENT_TYPE.IMAGE, COMPONENT_TYPE.SHAPE)
 
-
 class COMPONENT_ALIGN(object):
-    LEFT = 'left'
-    RIGHT = 'right'
+    LEFT   = 'left'
+    RIGHT  = 'right'
     CENTER = 'center'
-    TOP = 'top'
+    TOP    = 'top'
     BOTTOM = 'bottom'
 
-
 class COMPONENT_STATE(object):
-    INIT = 1
-    LOAD = 2
-    UNLOAD = 3
+    INIT    = 1
+    LOAD    = 2
+    UNLOAD  = 3
     DESTROY = 4
 
-
 class COMPONENT_EVENT(object):
-    LOADED = Event.Event()
-    UPDATED = Event.Event()
+    LOADED   = Event.Event()
+    UPDATED  = Event.Event()
     UNLOADED = Event.Event()
-
 
 class Cache(object):
 
@@ -160,11 +153,11 @@ class Hooks(object):
 
     def _start(self):
         ServicesLocator.appLoader.onGUISpaceEntered += self.__onGUISpaceEntered
-        ServicesLocator.appLoader.onGUISpaceLeft += self.__onGUISpaceLeft
+        ServicesLocator.appLoader.onGUISpaceLeft    += self.__onGUISpaceLeft
 
     def _destroy(self):
         ServicesLocator.appLoader.onGUISpaceEntered -= self.__onGUISpaceEntered
-        ServicesLocator.appLoader.onGUISpaceLeft -= self.__onGUISpaceLeft
+        ServicesLocator.appLoader.onGUISpaceLeft    -= self.__onGUISpaceLeft
 
     def _populate(self):
         g_eventBus.addListener(events.GameEvent.SHOW_CURSOR, self.__handleShowCursor, EVENT_BUS_SCOPE.GLOBAL)
@@ -180,19 +173,22 @@ class Hooks(object):
         if ctrl is not None and hasattr(ctrl, 'onRespawnVisibilityChanged'):
             ctrl.onRespawnVisibilityChanged += self.__onRespawnVisibilityChanged
 
-        spawnCtrl = self.sessionProvider.dynamic.spawn
-        if spawnCtrl is not None:
-            if hasattr(BattleRoyalePage, 'showSpawnPoints'):
-                global hooked_showSpawnPoints
-                if hooked_showSpawnPoints is None:
-                    hooked_showSpawnPoints = BattleRoyalePage.showSpawnPoints
-                    BattleRoyalePage.showSpawnPoints = newBattleRoyalePageShowSpawnPoints
-
-            if hasattr(BattleRoyalePage, 'closeSpawnPoints'):
-                global hooked_closeSpawnPoints
-                if hooked_closeSpawnPoints is None:
-                    hooked_closeSpawnPoints = BattleRoyalePage.closeSpawnPoints
-                    BattleRoyalePage.closeSpawnPoints = newBattleRoyalePageCloseSpawnPoints
+        try:
+            from battle_royale.gui.Scaleform.daapi.view.battle import BattleRoyalePage
+            spawnCtrl = self.sessionProvider.dynamic.spawn
+            if spawnCtrl is not None:
+                if hasattr(BattleRoyalePage, 'showSpawnPoints'):
+                    global hooked_showSpawnPoints
+                    if hooked_showSpawnPoints is None:
+                        hooked_showSpawnPoints = BattleRoyalePage.showSpawnPoints
+                        BattleRoyalePage.showSpawnPoints = newBattleRoyalePageShowSpawnPoints
+                if hasattr(BattleRoyalePage, 'closeSpawnPoints'):
+                    global hooked_closeSpawnPoints
+                    if hooked_closeSpawnPoints is None:
+                        hooked_closeSpawnPoints = BattleRoyalePage.closeSpawnPoints
+                        BattleRoyalePage.closeSpawnPoints = newBattleRoyalePageCloseSpawnPoints
+        except ImportError:
+            pass
 
     def _dispose(self):
         g_eventBus.removeListener(events.GameEvent.SHOW_CURSOR, self.__handleShowCursor, EVENT_BUS_SCOPE.GLOBAL)
@@ -377,7 +373,6 @@ class Flash_UI(Flash_Meta):
             g_guiCache.update(alias, props.toDict())
             COMPONENT_EVENT.UPDATED(alias, props.toDict())
 
-
 class GUIFlash(object):
 
     def __init__(self):
@@ -408,13 +403,11 @@ class GUIFlash(object):
                 g_guiViews.delete(alias)
             g_guiCache.delete(alias)
 
-
 g_guiCache = Cache()
 g_guiViews = Views()
 g_guiHooks = Hooks()
 g_guiEvents = Events()
 g_guiSettings = Settings()
-
 
 hooked_showSpawnPoints = hooked_closeSpawnPoints = None
 
@@ -425,7 +418,6 @@ def newBattleRoyalePageShowSpawnPoints(self):
         pass
     finally:
         hooked_showSpawnPoints(self)
-
 
 def newBattleRoyalePageCloseSpawnPoints(self):
     try:
