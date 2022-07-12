@@ -12,7 +12,7 @@
 	
 	public class LabelEx extends UIComponentEx
 	{
-		public static const NAME_FONT:String = "$Fieldfont";
+		public static const NAME_FONT:String = "$FieldFont";
 		
 		private var textField:TextField;
 		
@@ -32,6 +32,7 @@
 			_isHtml = true;			
 			_hAlign = Align.LEFT;
 			_vAlign = Align.TOP;
+			_autoSize = TextFieldAutoSize.LEFT;
 			
 			textField.width = 0;
 			textField.height = 0;
@@ -45,7 +46,7 @@
 			textField.backgroundColor = 0x000000;
 			
 			textField.embedFonts = true;
-			textField.autoSize = TextFieldAutoSize.LEFT;
+			textField.autoSize = autoSize;
 			textField.antiAliasType = AntiAliasType.ADVANCED;
 			
 			textField.defaultTextFormat = new TextFormat(NAME_FONT, 12, 0xFFFFFF, false, false, false, "", "", "left", 0, 0, 0, 0);
@@ -101,10 +102,10 @@
 		}
 		
 		override protected function updateSize():void
-		{			
-			if (autoSize)
+		{
+			if (autoSize != TextFieldAutoSize.NONE)
 			{
-				textField.autoSize = TextFieldAutoSize.LEFT;
+				textField.autoSize = autoSize;
 				// textField.width = _originalWidth;
 				// textField.height = _originalHeight;
 			}

@@ -1,6 +1,6 @@
 ﻿# -*- coding: utf-8 -*-
 
-__all__ = ['COMPONENT_TYPE', 'COMPONENT_ALIGN', 'COMPONENT_EVENT']
+__all__ = ['COMPONENT_TYPE', 'COMPONENT_ALIGN', 'COMPONENT_EVENT', 'AUTOSIZE']
 
 import BigWorld
 import GUI, Event, BattleReplay
@@ -15,6 +15,7 @@ from gui.Scaleform.framework.managers.loaders import SFViewLoadParams
 from gui.Scaleform.framework import g_entitiesFactories, ViewSettings, ScopeTemplates
 from skeletons.gui.app_loader import GuiGlobalSpaceID as SPACE_ID
 from skeletons.gui.battle_session import IBattleSessionProvider
+from utils import LOG_DEBUG
 
 class CONSTANTS(object):
     FILE_NAME  = 'GUIFlash.swf'
@@ -46,18 +47,27 @@ class COMPONENT_EVENT(object):
     UPDATED  = Event.Event()
     UNLOADED = Event.Event()
 
+class AUTOSIZE(object):
+    LEFT   = 'left'
+    CENTER = 'center'
+    RIGHT  = 'right'
+    NONE   = 'none'
+
 class Cache(object):
 
     def __init__(self):
         self.components = {}
 
     def create(self, alias, _type, props, battle=True, lobby=False):
+        LOG_DEBUG("Create cache: '%s' [%s] -> Properties: %s, battle: %s, lobby: %s" % (alias, _type, props, battle, lobby))
         self.components[alias] = {'type': _type, 'props': props, 'battle': battle, 'lobby': lobby}
 
     def update(self, alias, props):
+        LOG_DEBUG("Change cache: '%s' -> Properties: %s" % (alias, props))
         self.components[alias].get('props').update(props)
 
     def delete(self, alias):
+        LOG_DEBUG("Destroy cache: '%s'" % alias)
         del self.components[alias]
 
     def isComponent(self, alias):
@@ -81,11 +91,13 @@ class Cache(object):
         return compType in ALL_COMPONENT_TYPES
 
     def readConfig(self, path):
+        LOG_DEBUG("Read config from file '%s'." % path)
         with open(path, "r") as f:
             data = json.load(f)
         return data
 
     def saveConfig(self, path, data):
+        LOG_DEBUG("Save config in file '%s'." % path)
         with codecs.open(path, 'w', 'utf-8') as f:
             json.dump(data, f, indent=4, sort_keys=True, ensure_ascii=False)
 
@@ -104,14 +116,17 @@ class Views(object):
 
     def create(self, alias, compType, props):
         if self.ui is not None:
+            LOG_DEBUG("Create component: '%s' [%s] -> Properties: %s" % (alias, compType, props))
             self.ui.as_createS(alias, compType, props)
 
     def update(self, alias, props, params):
         if self.ui is not None:
+            LOG_DEBUG("Change component: '%s' -> Properties: %s | Parameters: %s" % (alias, props, params))
             self.ui.as_updateS(alias, props, params)
 
     def delete(self, alias):
         if self.ui is not None:
+            LOG_DEBUG("Destroy component: '%s'" % alias)
             self.ui.as_deleteS(alias)
 
     def resize(self):
@@ -180,13 +195,15 @@ class Hooks(object):
                 if hasattr(BattleRoyalePage, 'showSpawnPoints'):
                     global hooked_showSpawnPoints
                     if hooked_showSpawnPoints is None:
-                        hooked_showSpawnPoints = BattleRoyalePage.showSpawnPoints
+                        hooked_showSpawnPoints           = BattleRoyalePage.showSpawnPoints
                         BattleRoyalePage.showSpawnPoints = newBattleRoyalePageShowSpawnPoints
+                        LOG_DEBUG("BattleRoyalePage:showSpawnPoints hooked!")
                 if hasattr(BattleRoyalePage, 'closeSpawnPoints'):
                     global hooked_closeSpawnPoints
                     if hooked_closeSpawnPoints is None:
-                        hooked_closeSpawnPoints = BattleRoyalePage.closeSpawnPoints
+                        hooked_closeSpawnPoints           = BattleRoyalePage.closeSpawnPoints
                         BattleRoyalePage.closeSpawnPoints = newBattleRoyalePageCloseSpawnPoints
+                        LOG_DEBUG("BattleRoyalePage:closeSpawnPoints hooked!")
         except ImportError:
             pass
 
@@ -366,7 +383,7 @@ class Flash_UI(Flash_Meta):
         super(Flash_UI, self)._dispose()
 
     def py_log(self, *args):
-        pass
+        LOG_DEBUG(*args)
 
     def py_update(self, alias, props):
         if g_guiCache.isComponent(alias):
@@ -390,18 +407,26 @@ class GUIFlash(object):
                 g_guiCache.create(alias, compType, props, battle, lobby)
                 if g_guiCache.isActiveComponent(alias):
                     g_guiViews.create(alias, compType, props)
+            else:
+                LOG_DEBUG("Invalid component type '%s'!" % alias)
+        else:
+            LOG_DEBUG("Component '%s' already exists!" % alias)
 
     def updateComponent(self, alias, props, params=None):
         if g_guiCache.isComponent(alias):
             g_guiCache.update(alias, props)
             if g_guiCache.isActiveComponent(alias):
                 g_guiViews.update(alias, props, params)
+        else:
+            LOG_DEBUG("Component '%s' not found!" % alias)
 
     def deleteComponent(self, alias):
         if g_guiCache.isComponent(alias):
             if g_guiCache.isActiveComponent(alias):
                 g_guiViews.delete(alias)
             g_guiCache.delete(alias)
+        else:
+            LOG_DEBUG("Component '%s' not found" % alias)
 
 g_guiCache = Cache()
 g_guiViews = Views()
@@ -413,6 +438,7 @@ hooked_showSpawnPoints = hooked_closeSpawnPoints = None
 
 def newBattleRoyalePageShowSpawnPoints(self):
     try:
+        LOG_DEBUG("newBattleRoyalePageShowSpawnPoints called!")
         g_guiHooks.onBattleRoyaleSpawnVisibilityChanged(True)
     except StandardError:
         pass
@@ -421,6 +447,7 @@ def newBattleRoyalePageShowSpawnPoints(self):
 
 def newBattleRoyalePageCloseSpawnPoints(self):
     try:
+        LOG_DEBUG("newBattleRoyalePageCloseSpawnPoints called!")
         g_guiHooks.onBattleRoyaleSpawnVisibilityChanged(False)
     except StandardError:
         pass

@@ -3,6 +3,7 @@
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.display.InteractiveObject;
+	import flash.text.TextFieldAutoSize;
 	
 	import net.wg.data.constants.DragType;
 	import net.wg.infrastructure.interfaces.entity.IDraggable;
@@ -10,7 +11,7 @@
 	import net.gambiter.FlashUI;
 	import net.gambiter.utils.Align;
 	import net.gambiter.utils.Properties;
-	import net.gambiter.core.UIBorderEx;	
+	import net.gambiter.core.UIBorderEx;
 	import scaleform.clik.core.UIComponent;
 	
 	public class UIComponentEx extends UIComponent implements IDraggable
@@ -19,7 +20,7 @@
 		
 		public var _x:Number;
 		public var _y:Number;
-		private var _autoSize:Boolean;
+		public var _autoSize:*;
 		private var _alignX:String;
 		private var _alignY:String;		
 		private var _drag:Boolean;
@@ -67,14 +68,15 @@
 		override protected function configUI():void
 		{
 			super.configUI();
-			App.cursor.registerDragging(this);
 			addEventListener(MouseEvent.MOUSE_OVER, onMouseOver, false, 0, true);
 			addEventListener(MouseEvent.MOUSE_OUT, onMouseOut, false, 0, true);
 		}
 		
 		override protected function onDispose():void
 		{
-			App.cursor.unRegisterDragging(this);
+			if (_drag) {
+				App.cursor.unRegisterDragging(this);
+			}
 			removeEventListener(MouseEvent.MOUSE_OVER, onMouseOver);
 			removeEventListener(MouseEvent.MOUSE_OUT, onMouseOut);
 			super.onDispose();
@@ -206,7 +208,15 @@
 		
 		public function set drag(value:Boolean):void
 		{
-			if (value != _drag) _drag = value;
+			if (value != _drag) {
+				if (value) {
+					App.cursor.registerDragging(this);
+				}
+				else {
+					App.cursor.unRegisterDragging(this);
+				}
+				_drag = value;
+			}
 		}
 		
 		public function get limit():Boolean
@@ -279,25 +289,37 @@
 			if ((Align.isValidY(value)) && (value != _alignY)) _alignY = value;
 		}
 		
-		public function get autoSize():Boolean
+		public function get autoSize():*
 		{
 			return _autoSize;
 		}
 		
-		public function set autoSize(value:Boolean):void
+		public function set autoSize(value:*):void
 		{
 			if (value != _autoSize) _autoSize = value;
 		}
 		
 		override public function set width(value:Number):void
 		{
-			_autoSize = false;
+			if (_autoSize is String) {
+				_autoSize = TextFieldAutoSize.NONE;
+			}
+			else 
+			{
+				_autoSize = false;
+			}
 			super.width = value;
 		}
 		
 		override public function set height(value:Number):void
 		{
-			_autoSize = false;
+			if (_autoSize is String) {
+				_autoSize = TextFieldAutoSize.NONE;
+			}
+			else 
+			{
+				_autoSize = false;
+			}
 			super.height = value;
 		}
 		
