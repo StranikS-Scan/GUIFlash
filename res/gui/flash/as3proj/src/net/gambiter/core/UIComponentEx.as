@@ -22,14 +22,14 @@
 		public var _y:Number;
 		public var _autoSize:*;
 		private var _alignX:String;
-		private var _alignY:String;		
+		private var _alignY:String;
 		private var _drag:Boolean;
 		private var _limit:Boolean;
 		private var _isDragging:Boolean;
 		private var _border:Boolean;
 		private var _tooltip:String;
 		private var _alias:String;
-		private var _index:Number;		
+		private var _index:Number;
 		
 		private var _visible:Boolean;
 		private var _radialMenu:Boolean;

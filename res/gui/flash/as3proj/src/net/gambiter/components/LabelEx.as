@@ -38,7 +38,7 @@
 			textField.height = 0;
 			
 			textField.mouseEnabled = false;
-						
+			
 			textField.wordWrap = false;
 			textField.multiline = false;
 			textField.selectable = false;
