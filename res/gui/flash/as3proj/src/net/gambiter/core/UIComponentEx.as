@@ -20,7 +20,7 @@
 		
 		public var _x:Number;
 		public var _y:Number;
-		public var _autoSize:*;
+		private var _autoSize:Boolean;
 		private var _alignX:String;
 		private var _alignY:String;
 		private var _drag:Boolean;
@@ -37,6 +37,7 @@
 		private var _fullStatsQuestProgress:Boolean;
 		private var _epicMapOverlayVisible:Boolean;
 		private var	_epicRespawnOverlayVisible:Boolean;
+		private var	_battleRoyaleRespawnVisibility:Boolean;
 		
 		public function UIComponentEx()
 		{
@@ -61,7 +62,7 @@
 			_fullStatsQuestProgress = false;
 			_epicMapOverlayVisible = false;
 			_epicRespawnOverlayVisible = false;
-			
+			_battleRoyaleRespawnVisibility = false;
 			focusable = false;
 		}
 		
@@ -104,7 +105,8 @@
 				(!FlashUI.ui.showFullStats || _fullStats) &&
 				(!FlashUI.ui.showFullStatsQuestProgress || _fullStatsQuestProgress) &&
 				(!FlashUI.ui.epicMapOverlayVisibility || _epicMapOverlayVisible) &&
-				(!FlashUI.ui.epicRespawnOverlayVisibility || _epicRespawnOverlayVisible);
+				(!FlashUI.ui.epicRespawnOverlayVisibility || _epicRespawnOverlayVisible) &&
+				(!FlashUI.ui.battleRoyaleRespawnVisibility || _battleRoyaleRespawnVisibility);
 		}
 		
 		private function updateIndex():void		
@@ -125,8 +127,11 @@
 		public function updatePosition():void
 		{		
 			super.x = Math.round(_x + (parent.width - width) * Align.getFactor(_alignX));
-			super.y = Math.round(_y + (parent.height - height) * Align.getFactor(_alignY));
-			if (!_limit) return;			
+			super.y = Math.round(_y + (parent.height - height) * Align.getFactor(_alignY));			
+			if (!_limit) {
+				return;
+				
+			}
 			var point:Object = Properties.getLimiter(this, super.x, super.y);
 			super.x = point.x;
 			super.y = point.y;
@@ -165,6 +170,7 @@
 		
 		private function onMouseOut(event:MouseEvent):void
 		{
+			if (!_drag) return;
 			if (_tooltip) App.toolTipMgr.hide();
 			if (_border) borderEx.hide();
 		}
@@ -289,37 +295,30 @@
 			if ((Align.isValidY(value)) && (value != _alignY)) _alignY = value;
 		}
 		
-		public function get autoSize():*
+		public function get autoSize():Boolean
 		{
 			return _autoSize;
 		}
 		
-		public function set autoSize(value:*):void
+		public function set autoSize(value:Boolean):void
 		{
 			if (value != _autoSize) _autoSize = value;
 		}
 		
 		override public function set width(value:Number):void
 		{
-			if (_autoSize is String) {
-				_autoSize = TextFieldAutoSize.NONE;
-			}
-			else 
-			{
-				_autoSize = false;
-			}
+			_autoSize = false;
 			super.width = value;
 		}
 		
+		public function setLabelSizes(width:Number, height:Number):void
+		{
+			super.width = width;
+			super.height = height;
+		}
 		override public function set height(value:Number):void
 		{
-			if (_autoSize is String) {
-				_autoSize = TextFieldAutoSize.NONE;
-			}
-			else 
-			{
-				_autoSize = false;
-			}
+			_autoSize = false;
 			super.height = value;
 		}
 		

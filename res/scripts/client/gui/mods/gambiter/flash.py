@@ -1,6 +1,6 @@
 ﻿# -*- coding: utf-8 -*-
 
-__all__ = ['COMPONENT_TYPE', 'COMPONENT_ALIGN', 'COMPONENT_EVENT', 'AUTOSIZE']
+__all__ = ['COMPONENT_TYPE', 'COMPONENT_ALIGN', 'COMPONENT_EVENT']
 
 import BigWorld
 import GUI, Event, BattleReplay
@@ -35,6 +35,7 @@ class COMPONENT_ALIGN(object):
     CENTER = 'center'
     TOP    = 'top'
     BOTTOM = 'bottom'
+    NONE = 'none'
 
 class COMPONENT_STATE(object):
     INIT    = 1
@@ -47,11 +48,7 @@ class COMPONENT_EVENT(object):
     UPDATED  = Event.Event()
     UNLOADED = Event.Event()
 
-class AUTOSIZE(object):
-    LEFT   = 'left'
-    CENTER = 'center'
-    RIGHT  = 'right'
-    NONE   = 'none'
+
 
 class Cache(object):
 

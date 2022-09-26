@@ -27,12 +27,10 @@
 			
 			textField = new TextField();
 			textField.name = "label";
-			addChild(textField);
 			
 			_isHtml = true;			
 			_hAlign = Align.LEFT;
 			_vAlign = Align.TOP;
-			_autoSize = TextFieldAutoSize.LEFT;
 			
 			textField.width = 0;
 			textField.height = 0;
@@ -46,7 +44,7 @@
 			textField.backgroundColor = 0x000000;
 			
 			textField.embedFonts = true;
-			textField.autoSize = autoSize;
+			textField.autoSize = TextFieldAutoSize.LEFT;
 			textField.antiAliasType = AntiAliasType.ADVANCED;
 			
 			textField.defaultTextFormat = new TextFormat(NAME_FONT, 12, 0xFFFFFF, false, false, false, "", "", "left", 0, 0, 0, 0);
@@ -60,6 +58,7 @@
 				"strength": 1,
 				"quality": 1
 			});
+			addChild(textField);
 		}
 		
 		override protected function configUI():void
@@ -103,11 +102,12 @@
 		
 		override protected function updateSize():void
 		{
-			if (autoSize != TextFieldAutoSize.NONE)
+			if (autoSize)
 			{
-				textField.autoSize = autoSize;
+				textField.autoSize = TextFieldAutoSize.LEFT;
 				// textField.width = _originalWidth;
 				// textField.height = _originalHeight;
+				super.setLabelSizes(textField.width, textField.height);
 			}
 			else
 			{
