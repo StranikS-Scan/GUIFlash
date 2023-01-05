@@ -1,17 +1,20 @@
 ﻿package net.gambiter.utils
 {	
-	import flash.geom.Point;
-	import flash.geom.Rectangle;
+	import com.greensock.TweenLite;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
+	import flash.display.Sprite;
+	import flash.display.LineScaleMode;
+	import flash.display.CapsStyle;
+	import flash.display.JointStyle;
 	import flash.filters.DropShadowFilter;
 	import flash.filters.GlowFilter;
-	
-	import com.greensock.TweenLite;
-	
+	import flash.geom.Point;
+	import flash.geom.Rectangle;
 	import net.gambiter.FlashUI;
 	import net.gambiter.core.UIComponentEx;
-	import net.gambiter.components.ImageEx;
+	
+	
 
 	public class Properties
 	{		
@@ -80,7 +83,6 @@
 			
 			for (var prop:String in props)
 			{
-
 				if (obj.hasOwnProperty(prop)) {
 					obj[prop] = props[prop];
 					continue;
@@ -89,6 +91,7 @@
 			}
 
 			if (obj is UIComponentEx /* && !(obj is ImageEx)*/ ) {
+				//(obj as UIComponentEx).invalidate()
 				(obj as UIComponentEx).refresh();
 			}
 		}
