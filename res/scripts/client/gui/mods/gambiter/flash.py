@@ -35,7 +35,7 @@ class COMPONENT_ALIGN(object):
     CENTER = 'center'
     TOP    = 'top'
     BOTTOM = 'bottom'
-    NONE = 'none'
+    NONE   = 'none'
 
 class COMPONENT_STATE(object):
     INIT    = 1
@@ -47,8 +47,6 @@ class COMPONENT_EVENT(object):
     LOADED   = Event.Event()
     UPDATED  = Event.Event()
     UNLOADED = Event.Event()
-
-
 
 class Cache(object):
 
@@ -98,7 +96,6 @@ class Cache(object):
         with codecs.open(path, 'w', 'utf-8') as f:
             json.dump(data, f, indent=4, sort_keys=True, ensure_ascii=False)
 
-
 class Views(object):
 
     def __init__(self):
@@ -129,7 +126,8 @@ class Views(object):
     def resize(self):
         if self.ui is not None:
             width, height = GUI.screenResolution()
-            self.ui.as_resizeS(width, height)
+            scale = ServicesLocator.settingsCore.interfaceScale.get()
+            self.ui.as_resizeS(int(width / float(scale)), int(height / float(scale)))
 
     def cursor(self, isShow):
         if self.ui is not None:
@@ -162,7 +160,6 @@ class Views(object):
     def battleRoyaleSpawnVisibility(self, isVisible):
         if self.ui is not None:
             self.ui.as_battleRoyaleRespawnVisibilityS(isVisible)
-
 
 class Hooks(object):
     sessionProvider = dependency.descriptor(IBattleSessionProvider)

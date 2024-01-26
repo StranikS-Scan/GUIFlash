@@ -1,8 +1,8 @@
-##### World of Tanks - Mods
+﻿##### World of Tanks - Mods
 
 ## .. GUIFlash ..
 
-Copyright (C) 2017-2019 GambitER, 2020-2022 CH4MPi, 2022 Kurzdor, StranikS_Scan's assembly option 2018-2022
+Copyright (C) 2017-2019 GambitER, 2020-2022 CH4MPi, 2022 Kurzdor, StranikS_Scan's assembly option 2018-2024
 
 ## English
 Allows you to dynamically create components for displaying text and graphic information in the Flash interface of the game World of Tanks. Components are created and managed using Python scripts (client modifications).
