@@ -161,6 +161,10 @@ class Views(object):
         if self.ui is not None:
             self.ui.as_battleRoyaleRespawnVisibilityS(isVisible)
 
+    def killCamVisibility(self, isVisible):
+        if self.ui is not None:
+            self.ui.as_killCamVisibilityS(isVisible)
+
 class Hooks(object):
     sessionProvider = dependency.descriptor(IBattleSessionProvider)
 
@@ -183,10 +187,19 @@ class Hooks(object):
         ctrl = self.sessionProvider.dynamic.maps
         if ctrl is not None and hasattr(ctrl, 'onVisibilityChanged'):
             ctrl.onVisibilityChanged += self.__onMapVisibilityChanged
+        # NOTE: frontline respawn screen
         ctrl = self.sessionProvider.dynamic.respawn
         if ctrl is not None and hasattr(ctrl, 'onRespawnVisibilityChanged'):
             ctrl.onRespawnVisibilityChanged += self.__onRespawnVisibilityChanged
 
+        # WoT 1.24.1 - KILL CAM - throws an error on other clients like Lesta, so we catch and ignore it
+        try:
+            if hasattr(self.sessionProvider.shared, 'killCamCtrl') and self.sessionProvider.shared.killCamCtrl:
+                self.sessionProvider.shared.killCamCtrl.onKillCamModeStateChanged += self.__onKillCamModeStateChanged
+        except AttributeError:
+            LOG_DEBUG('killCamCtrl not found!')
+
+        # NOTE: steel hunter select spawn screen
         try:
             from battle_royale.gui.Scaleform.daapi.view.battle import BattleRoyalePage
             spawnCtrl = self.sessionProvider.dynamic.spawn
@@ -203,6 +216,13 @@ class Hooks(object):
                         hooked_closeSpawnPoints           = BattleRoyalePage.closeSpawnPoints
                         BattleRoyalePage.closeSpawnPoints = newBattleRoyalePageCloseSpawnPoints
                         LOG_DEBUG("BattleRoyalePage:closeSpawnPoints hooked!")
+
+                # TEST: check if this works more accurate
+                # ctrl = self.sessionProvider.dynamic.maps
+                # if ctrl is not None:
+                #     ctrl.onOverlayTriggered += self.onBattleRoyaleSpawnVisibilityChanged
+                #     self.onBattleRoyaleSpawnVisibilityChanged(ctrl.overlayActive)
+                # TEST: !check if this works more accurate
         except ImportError:
             pass
 
@@ -220,6 +240,13 @@ class Hooks(object):
         ctrl = self.sessionProvider.dynamic.respawn
         if ctrl is not None:
             ctrl.onRespawnVisibilityChanged -= self.__onRespawnVisibilityChanged
+
+        # WoT 1.24.1 - KILL CAM
+        try:
+            if hasattr(self.sessionProvider.shared, 'killCamCtrl') and self.sessionProvider.shared.killCamCtrl:
+                self.sessionProvider.shared.killCamCtrl.onKillCamModeStateChanged -= self.__onKillCamModeStateChanged
+        except AttributeError:
+            LOG_DEBUG('killCamCtrl not found!')
 
     def __onGUISpaceEntered(self, spaceID):
         if spaceID == SPACE_ID.LOGIN:
@@ -263,6 +290,13 @@ class Hooks(object):
     def __toggleFullStatsPersonalReserves(self, event):
         isDown = event.ctx['isDown']
         g_guiEvents.toggleFullStatsPersonalReserves(isDown)
+
+    def __onKillCamModeStateChanged(self, state, _):
+        try:
+            from gui.shared.events import DeathCamEvent
+            g_guiEvents.killCamVisible(state not in (DeathCamEvent.State.INACTIVE, DeathCamEvent.State.FINISHED))
+        except ImportError:
+            pass
 
     def __onMapVisibilityChanged(self, isVisible):
         g_guiEvents.epicMapOverlayVisibility(isVisible)
@@ -324,6 +358,9 @@ class Events(object):
     def battleRoyaleSpawnVisibility(self, isShow):
         g_guiViews.battleRoyaleSpawnVisibility(isShow)
 
+    def killCamVisible(self, isVisible):
+        g_guiViews.killCamVisibility(isVisible)
+
 class Settings(object):
 
     def _start(self):
@@ -331,7 +368,6 @@ class Settings(object):
 
     def _destroy(self):
         g_entitiesFactories.removeSettings(CONSTANTS.VIEW_ALIAS)
-
 
 class Flash_Meta(View):
 
@@ -377,6 +413,8 @@ class Flash_Meta(View):
     def as_battleRoyaleRespawnVisibilityS(self, isVisible):
         return self.flashObject.as_battleRoyaleRespawnVisibility(isVisible) if self._isDAAPIInited() else None
 
+    def as_killCamVisibilityS(self, isVisible):
+        return self.flashObject.as_killCamVisibility(isVisible) if self._isDAAPIInited() else None
 
 class Flash_UI(Flash_Meta):
 
