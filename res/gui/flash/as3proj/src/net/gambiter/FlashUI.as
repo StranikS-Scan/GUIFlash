@@ -31,7 +31,7 @@
 		public var epicRespawnOverlayVisibility:Boolean;
 		public var battleRoyaleRespawnVisibility:Boolean;
 		public var killCamVisibility:Boolean;
-		
+
 		public var screenSize:Object;
 		private var viewPage:DisplayObjectContainer;
 		private var components:Object;
@@ -176,7 +176,7 @@
 			for (var alias:String in components)
 				components[alias].updateVisible();
 		}
-		
+
 		public function as_create(alias:String, type:String, props:Object):void
 		{
 			if (viewPage) createComponent(alias, type, props);

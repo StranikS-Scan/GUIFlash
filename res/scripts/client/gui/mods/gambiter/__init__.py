@@ -2,7 +2,7 @@
 
 from flash import GUIFlash
 
-GUIFLASH_VERSION = '0.6.2s'
+GUIFLASH_VERSION = '0.6.3s'
 
 def getVersion():
     return GUIFLASH_VERSION

@@ -29,7 +29,7 @@
 
 		// new custom background
 		private var bg_alpha:Number;
-		private var bg_border:Boolean;
+		private var	bg_border:Boolean;
 		private var bg_borderColor:uint;
 		private var bg_caps:String;
 		private var bg_color:uint;
@@ -49,7 +49,7 @@
 			
 			textField = new TextField();
 			textField.name = "label";
-			//addChild(textField);
+//			addChild(textField);
 
 			_isHtml = true;			
 			_hAlign = Align.LEFT;
