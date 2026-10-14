@@ -1,6 +1,6 @@
 <root>
 	<id>gambiter.guiflash</id>
-	<version>0.6.6s</version>
+	<version>0.6.7s</version>
 	<name>GUIFlash</name>
 	<description>Flash components for use in python mods</description>
 </root>

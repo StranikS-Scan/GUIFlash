@@ -10,14 +10,22 @@ import GUI
 
 import BattleReplay
 import Event
+import realm
 from frameworks.wulf import WindowLayer
 from gui import g_guiResetters
-from gui.Scaleform.framework import g_entitiesFactories, ScopeTemplates, ViewSettings
+
+IS_LESTAGAME = (realm.CURRENT_REALM == 'RU' and hasattr(realm, 'IS_CT'))
+
+if IS_LESTAGAME:
+    from gui.Scaleform.framework import g_entitiesFactories
+
+from gui.Scaleform.framework import ScopeTemplates, ViewSettings
 from gui.Scaleform.framework.entities.View import View
 from gui.Scaleform.framework.managers.loaders import SFViewLoadParams
 from gui.shared import EVENT_BUS_SCOPE, events, g_eventBus
 from gui.shared.personality import ServicesLocator
 from helpers import dependency
+from skeletons.gui.impl import IGuiLoader
 from skeletons.gui.app_loader import GuiGlobalSpaceID as SPACE_ID
 from skeletons.gui.battle_session import IBattleSessionProvider
 from utils import LOG_DEBUG, getParentWindow
@@ -464,12 +472,19 @@ class Events(object):
         g_guiViews.killCamVisibility(isVisible)
 
 class Settings(object):
+    guiLoader = dependency.descriptor(IGuiLoader)
 
     def _start(self):
-        g_entitiesFactories.addSettings(ViewSettings(CONSTANTS.VIEW_ALIAS, Flash_UI, CONSTANTS.FILE_NAME, WindowLayer.WINDOW, None, ScopeTemplates.GLOBAL_SCOPE))
+        if IS_LESTAGAME:
+            g_entitiesFactories.addSettings(ViewSettings(CONSTANTS.VIEW_ALIAS, Flash_UI, CONSTANTS.FILE_NAME, WindowLayer.WINDOW, None, ScopeTemplates.GLOBAL_SCOPE))
+        else:
+            self.guiLoader.entitiesFactory.addSettings(ViewSettings(CONSTANTS.VIEW_ALIAS, Flash_UI, CONSTANTS.FILE_NAME, WindowLayer.WINDOW, None, ScopeTemplates.GLOBAL_SCOPE))
 
     def _destroy(self):
-        g_entitiesFactories.removeSettings(CONSTANTS.VIEW_ALIAS)
+        if IS_LESTAGAME:
+            g_entitiesFactories.removeSettings(CONSTANTS.VIEW_ALIAS)
+        else:
+            self.guiLoader.entitiesFactory.removeSettings(CONSTANTS.VIEW_ALIAS)
 
 class Flash_Meta(View):
 
